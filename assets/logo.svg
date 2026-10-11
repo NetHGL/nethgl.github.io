@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="NetHGL">
+  <!-- A graph drawn as the letter N: one highlighted node and three small nodes. -->
+  <rect width="32" height="32" rx="8" fill="#0d5a69"/>
+  <path d="M9.5 22.5V10l13 12.5V10" fill="none" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="9.5" cy="22.5" r="2.8" fill="#ffffff"/>
+  <circle cx="22.5" cy="22.5" r="2.8" fill="#ffffff"/>
+  <circle cx="22.5" cy="10" r="2.8" fill="#ffffff"/>
+  <circle cx="9.5" cy="10" r="3.8" fill="#f7b719"/>
+</svg>

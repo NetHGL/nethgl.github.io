@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NetHGL: Network-aware Hierarchical Graph Learning</title>
+<meta name="description" content="NetHGL is a hierarchical graph neural network that passes messages among brain regions within each functional network, pools them into network nodes, and lets the networks attend to one another. Applied to fMRI from a sham-controlled Stanford Neuromodulation Therapy trial.">
+<meta property="og:title" content="NetHGL: Network-aware Hierarchical Graph Learning">
+<meta property="og:description" content="Hierarchical graph learning identifies remission-associated network organization in treatment-resistant depression following Stanford Neuromodulation Therapy.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nethgl.github.io/">
+<meta property="og:image" content="https://nethgl.github.io/assets/teaser.webp">
+<link rel="canonical" href="https://nethgl.github.io/">
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+</head>
+<body id="top">
+
+<header class="nav">
+  <div class="wrap navrow">
+    <a class="brand" href="#top">
+      <img class="mark" src="assets/logo.svg" width="30" height="30" alt="">
+      <span>NetHGL</span>
+    </a>
+    <nav class="navlinks" aria-label="Sections">
+      <a href="#overview">Overview</a>
+      <a href="#method">Method</a>
+      <a href="#results">Results</a>
+      <a href="#ablations">Ablations</a>
+      <a href="#findings">Findings</a>
+      <a href="#limitations">Limitations</a>
+      <a href="#cite">Cite</a>
+    </nav>
+    <a class="navbtn" href="https://github.com/tracyhann/NetHGL">Code</a>
+  </div>
+</header>
+
+<main>
+
+<section id="overview" class="wrap first">
+  <div class="hero">
+    <span class="name">NetHGL</span>
+    <span class="expand"><b>Net</b>work-aware <b>H</b>ierarchical <b>G</b>raph <b>L</b>earning</span>
+    <h1>Hierarchical Graph Learning Identifies Remission-Associated Network Organization in Treatment-Resistant Depression Following Stanford Neuromodulation Therapy</h1>
+  
+    <p class="authors">
+      <span>Huiwen Han<sup>1,†</sup></span>
+      <span>Adam R. Pines<sup>1</sup></span>
+      <span>Yixin Wang<sup>1</sup></span>
+      <span>Yu Zhang<sup>1</sup></span>
+      <span>Christopher W. Austelle<sup>1</sup></span>
+    </p>
+    <p class="affil"><sup>1</sup>Stanford University School of Medicine, Department of Psychiatry and Behavioral Sciences</p>
+    <p class="affil note"><sup>†</sup>Project lead.</p>
+  
+    <div class="links">
+      <span class="btn off" aria-disabled="true">Paper · coming soon</span>
+      <a class="btn" href="https://github.com/tracyhann/NetHGL">Code</a>
+      <a class="btn ghost" href="#cite">BibTeX</a>
+    </div>
+  </div>
+
+  <figure class="fig">
+    <img src="assets/teaser.webp" width="2200" height="621"
+         alt="Four panels. A: Stanford Neuromodulation Therapy targets a left DLPFC site anticorrelated with the sgACC. B: scans per visit by clinical state in the active and sham arms. C: message passing among ROIs within networks, then among networks. D: the thalamus and five partner networks.">
+    <figcaption><b>Overview.</b> <b>(A)</b> SNT stimulates an individualized left DLPFC target functionally anticorrelated with the sgACC; participants received a 5-day course of active or sham SNT, 10 treatments per day. <b>(B)</b> Scans per visit by concurrent clinical state in each arm. <b>(C)</b> Message passing among ROIs within each functional network, then directed message passing among networks. <b>(D)</b> Attention attribution identifies a significant interaction between thalamus–partner balance and active SNT.</figcaption>
+  </figure>
+</section>
+
+<section id="abstract" class="wrap abstractsec">
+  <div class="narrow abstract">
+    <h2>Abstract</h2>
+    <p class="lede">Major depressive disorder is heterogeneous in symptoms and treatment response, which limits individualized care, particularly in treatment-resistant depression. Brain networks are consistently implicated, but their alterations are distributed across many regions.</p>
+    <p>We asked whether a graph model built on the brain's functional-network organization can classify each resting-state fMRI scan as remission or persistent depression at the time of scanning and identify network interactions associated with treatment. Using longitudinal data from a randomized, sham-controlled Stanford Neuromodulation Therapy (SNT) trial (<a href="https://clinicaltrials.gov/study/NCT04739969">NCT04739969</a>), we developed NetHGL, a graph neural network that learns network-level representations from fMRI through intra-network message passing, hierarchical aggregation, and cross-network interactions.</p>
+    <p>NetHGL achieved higher mean performance than conventional machine-learning and graph-neural-network baselines, with an area under the receiver operating characteristic curve of 0.717 (95% CI, 0.665–0.770), balanced accuracy of 0.663 (0.614–0.712), and specificity of 0.700 (0.600–0.790) across 10 subject-level splits. Model interpretation revealed distributed remission-associated network differences, with thalamic interactions with cortical and striatal networks emerging as a prominent treatment-related component.</p>
+    <p>These findings suggest that NetHGL captures clinically relevant whole-brain states. They point to reorganization of these cortical–subcortical interactions as a candidate correlate of remission after active SNT.</p>
+
+    <ul class="facts" aria-label="Study at a glance">
+      <li><b>766</b><span>resting-state fMRI scans</span></li>
+      <li><b>42</b><span>participants, 20 active SNT and 22 sham</span></li>
+      <li><b>450 → 24</b><span>ROIs pooled into networks</span></li>
+      <li><b>0.717</b><span>mean AUC over 10 balanced random splits</span></li>
+    </ul>
+  </div>
+
+  <h2 class="sub">Contributions</h2>
+  <div class="three">
+    <article>
+      <h3>Time-series-informed graph construction</h3>
+      <p>ROI node features are summary statistics of each ROI's time series under within-ROI and whole-brain normalizations, accommodating scans of varying duration.</p>
+    </article>
+    <article>
+      <h3>Hierarchical ROI-to-network modeling</h3>
+      <p>The model learns community-aware ROI embeddings, pools them into network-level nodes with learned weights, and passes messages among networks. It retains ROI-level detail within networks while modeling higher-order interactions among them.</p>
+    </article>
+    <article>
+      <h3>Network-level interpretability</h3>
+      <p>Learned attention on network-level edges is analyzed to identify interactions associated with remission and treatment, generating hypotheses about pathways of treatment response.</p>
+    </article>
+  </div>
+</section>
+
+<section id="method" class="band">
+  <div class="wrap methodgrid">
+    <div class="mtext">
+      <p class="kicker">Method</p>
+      <h2>Network-aware Hierarchical Graph Learning</h2>
+      <p class="desc">Each scan is parcellated with a combined atlas: <b>400 cortical regions</b> from the Schaefer atlas, assigned to the <b>17 Yeo functional networks</b>, plus <b>50 subcortical regions</b> from the Tian Scale&nbsp;III atlas, grouped into <b>7 structures</b>. That gives <b>450 ROIs in 24 networks</b>. NetHGL passes messages among the ROIs of each network, pools every network into one node with learned weights, lets the 24 network nodes attend to one another, and combines them in a weighted ensemble that classifies the scan as depression or remission. The graph is the same for every scan; scans differ in their node features and in the attention the model assigns.</p>
+    </div>
+
+    <figure class="fig">
+      <img src="assets/pipeline.webp" width="2000" height="1394" loading="lazy"
+           alt="Two-panel architecture diagram. A, graph construction: fMRI and MADRS at each visit, BOLD fMRI, preprocessing and parcellation into 450 ROIs, node features, ROI graph, and the remitted or depressed label. B, network-aware hierarchical graph learning: within-network message passing with two GraphSAGE layers, ROI-to-network weighted pooling from 450 ROIs to 24 networks, network-level message passing with two GATv2 layers, and a network weighted ensemble that outputs remitted or depressed.">
+      <figcaption><b>NetHGL architecture.</b> <b>(A) Graph construction.</b> Each scan is parcellated into 450 ROIs, each ROI's time series is summarized as node features, and ROIs are connected within their functional network. The label is the concurrent clinical state from the MADRS. <b>(B) Network-aware hierarchical graph learning.</b> Two GraphSAGE layers pass messages within networks, learned weights pool the ROI embeddings into network nodes, two GATv2 layers pass messages among networks, and a weighted ensemble over networks predicts depression versus remission.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="results" class="wrap">
+  <p class="kicker">Results</p>
+  <h2>Classification of concurrent clinical state</h2>
+  <p class="narrow-text">Relative to the seven baselines, NetHGL achieved the highest mean value of every evaluated metric across 10 balanced random participant-level splits. Its AUC advantage over every baseline was significant under the normal approximation (Holm <i>p</i> ≤ 0.048); the differences from GAT and BrainGNN remained significant under the <i>t</i>(33) sensitivity analysis.</p>
+
+  <div class="tablewrap">
+    <table>
+      <caption><b>Classification performance.</b> Mean [95% participant-cluster bootstrap CI] across 10 matched participant-level splits. Positive class (+): depression. Best and second-best means are highlighted.</caption>
+      <thead><tr><th scope="col" style="text-align:left">Model</th><th scope="col">ACC</th><th scope="col">Balanced ACC</th><th scope="col">AUC</th><th scope="col">Specificity</th><th scope="col">Recall (+)</th><th scope="col">Precision (+)</th><th scope="col">F1 (+)</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">SVM</th><td><span>0.516</span><small>[0.462–0.574]</small></td><td><span>0.565</span><small>[0.513–0.637]</small></td><td><span>0.604</span><small>[0.533–0.702]</small></td><td><span>0.657</span><small>[0.539–0.799]</small></td><td><span>0.473</span><small>[0.396–0.563]</small></td><td><span>0.823</span><small>[0.705–0.917]</small></td><td><span>0.589</span><small>[0.500–0.659]</small></td></tr>
+        <tr><th scope="row">Random Forest</th><td><span>0.528</span><small>[0.471–0.584]</small></td><td><span>0.550</span><small>[0.481–0.626]</small></td><td><span>0.594</span><small>[0.503–0.708]</small></td><td><span>0.590</span><small>[0.440–0.747]</small></td><td><span>0.509</span><small>[0.440–0.574]</small></td><td><span>0.810</span><small>[0.690–0.902]</small></td><td><span>0.592</span><small>[0.508–0.651]</small></td></tr>
+        <tr><th scope="row">CNN</th><td><span>0.569</span><small>[0.517–0.626]</small></td><td><span>0.547</span><small>[0.474–0.630]</small></td><td><span>0.632</span><small>[0.557–0.728]</small></td><td><span>0.507</span><small>[0.354–0.672]</small></td><td><span>0.588</span><small>[0.532–0.661]</small></td><td><span>0.797</span><small>[0.701–0.888]</small></td><td><span>0.669</span><small>[0.619–0.714]</small></td></tr>
+        <tr><th scope="row">GCN</th><td><span>0.600</span><small>[0.560–0.642]</small></td><td><span>0.608</span><small>[0.565–0.659]</small></td><td><span>0.663</span><small>[0.621–0.716]</small></td><td><span>0.623</span><small>[0.538–0.724]</small></td><td><span>0.593</span><small>[0.540–0.655]</small></td><td><span>0.841</span><small>[0.755–0.911]</small></td><td><span>0.691</span><small>[0.642–0.728]</small></td></tr>
+        <tr><th scope="row">GraphSAGE</th><td class="second"><span>0.616</span><small>[0.570–0.666]</small></td><td><span>0.616</span><small>[0.565–0.670]</small></td><td class="second"><span>0.678</span><small>[0.622–0.755]</small></td><td><span>0.617</span><small>[0.514–0.718]</small></td><td class="second"><span>0.616</span><small>[0.562–0.687]</small></td><td><span>0.849</span><small>[0.772–0.915]</small></td><td class="second"><span>0.705</span><small>[0.661–0.743]</small></td></tr>
+        <tr><th scope="row">GAT</th><td><span>0.587</span><small>[0.551–0.629]</small></td><td><span>0.589</span><small>[0.551–0.633]</small></td><td><span>0.646</span><small>[0.609–0.699]</small></td><td><span>0.593</span><small>[0.515–0.676]</small></td><td><span>0.585</span><small>[0.543–0.642]</small></td><td><span>0.831</span><small>[0.748–0.899]</small></td><td><span>0.679</span><small>[0.641–0.711]</small></td></tr>
+        <tr><th scope="row">BrainGNN</th><td><span>0.599</span><small>[0.560–0.643]</small></td><td class="second"><span>0.621</span><small>[0.593–0.656]</small></td><td><span>0.650</span><small>[0.614–0.700]</small></td><td class="second"><span>0.663</span><small>[0.611–0.731]</small></td><td><span>0.580</span><small>[0.529–0.637]</small></td><td class="second"><span>0.860</span><small>[0.780–0.920]</small></td><td><span>0.682</span><small>[0.634–0.721]</small></td></tr>
+        <tr class="ours"><th scope="row">NetHGL (ours)</th><td class="best"><span>0.643</span><small>[0.598–0.692]</small></td><td class="best"><span>0.663</span><small>[0.614–0.712]</small></td><td class="best"><span>0.717</span><small>[0.665–0.770]</small></td><td class="best"><span>0.700</span><small>[0.600–0.790]</small></td><td class="best"><span>0.626</span><small>[0.571–0.689]</small></td><td class="best"><span>0.877</span><small>[0.806–0.933]</small></td><td class="best"><span>0.727</span><small>[0.683–0.764]</small></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="ablations" class="wrap">
+  <p class="kicker">Ablations</p>
+  <h2>Ablation study</h2>
+  <p class="narrow-text">All four ablations reduced mean performance across all metrics, and all four AUC reductions were significant (Holm <i>p</i> ≤ 0.0042). Removing network-level message passing produced the largest decline, followed by grouping the cortex into 7 instead of 17 networks.</p>
+
+  <div class="tablewrap">
+    <table>
+      <caption><b>Ablation study.</b> Same splits, metrics and confidence intervals as above. ΔAUC is the difference from the full model.</caption>
+      <thead><tr><th scope="col" style="text-align:left">Configuration</th><th scope="col">AUC</th><th scope="col">ΔAUC</th><th scope="col">Balanced ACC</th><th scope="col">Specificity</th><th scope="col">Recall (+)</th><th scope="col">F1 (+)</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Cross-network ROI message passing</th><td><span>0.668</span><small>[0.616–0.725]</small></td><td class="delta">−0.049</td><td><span>0.629</span><small>[0.586–0.675]</small></td><td><span>0.653</span><small>[0.557–0.753]</small></td><td><span>0.604</span><small>[0.560–0.661]</small></td><td><span>0.702</span><small>[0.661–0.734]</small></td></tr>
+        <tr><th scope="row">Mean ROI-to-network pooling</th><td><span>0.662</span><small>[0.613–0.718]</small></td><td class="delta">−0.055</td><td><span>0.608</span><small>[0.561–0.658]</small></td><td><span>0.633</span><small>[0.529–0.720]</small></td><td><span>0.583</span><small>[0.532–0.654]</small></td><td><span>0.683</span><small>[0.639–0.724]</small></td></tr>
+        <tr><th scope="row">No network-level message passing</th><td><span>0.547</span><small>[0.511–0.593]</small></td><td class="delta">−0.170</td><td><span>0.544</span><small>[0.512–0.584]</small></td><td><span>0.557</span><small>[0.484–0.646]</small></td><td><span>0.531</span><small>[0.481–0.573]</small></td><td><span>0.634</span><small>[0.572–0.670]</small></td></tr>
+        <tr><th scope="row">7 cortical networks</th><td><span>0.629</span><small>[0.573–0.696]</small></td><td class="delta">−0.088</td><td><span>0.600</span><small>[0.554–0.655]</small></td><td><span>0.623</span><small>[0.523–0.740]</small></td><td><span>0.577</span><small>[0.522–0.648]</small></td><td><span>0.678</span><small>[0.635–0.714]</small></td></tr>
+        <tr class="ours"><th scope="row">Full NetHGL (17 cortical networks)</th><td class="best"><span>0.717</span><small>[0.665–0.770]</small></td><td class="delta">—</td><td class="best"><span>0.663</span><small>[0.614–0.712]</small></td><td class="best"><span>0.700</span><small>[0.600–0.790]</small></td><td class="best"><span>0.626</span><small>[0.571–0.689]</small></td><td class="best"><span>0.727</span><small>[0.683–0.764]</small></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="findings" class="band">
+  <div class="wrap">
+    <div class="fhead">
+      <div>
+        <p class="kicker">Findings</p>
+        <h2>What the learned network interactions show</h2>
+      </div>
+      <p class="desc">Network balance is a network's outgoing minus incoming attribution toward the remission output, computed on held-out test scans. The directions are those of the model's message passing; the physiological direction of influence remains open.</p>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Findings">
+      <button type="button" role="tab" id="tab-1" aria-controls="finding-1" aria-selected="true"><b>1</b><span>Network balance in remission</span></button>
+      <button type="button" role="tab" id="tab-2" aria-controls="finding-2" aria-selected="false" tabindex="-1"><b>2</b><span>Thalamus × treatment</span></button>
+      <button type="button" role="tab" id="tab-3" aria-controls="finding-3" aria-selected="false" tabindex="-1"><b>3</b><span>Edge perturbation</span></button>
+      <button type="button" role="tab" id="tab-4" aria-controls="finding-4" aria-selected="false" tabindex="-1"><b>4</b><span>Thalamus–partner pairs</span></button>
+      <button type="button" role="tab" id="tab-5" aria-controls="finding-5" aria-selected="false" tabindex="-1"><b>5</b><span>Subgroup profiles</span></button>
+    </div>
+
+    <article class="finding" role="tabpanel" id="finding-1" aria-labelledby="tab-1">
+      <div class="ftext">
+        <h3>Remitted scans shift most cortical networks toward outgoing attribution</h3>
+        <p>In a descriptive contrast, remitted scans showed a broad cortical shift toward greater outgoing relative to incoming attribution compared with depressed scans, particularly across control, default-mode, dorsal-attention, and salience/ventral-attention networks. Peripheral visual, somatomotor, and temporal parietal networks shifted toward incoming dominance.</p>
+        <p>Subcortical structures mostly moved the other way: the hippocampus, caudate, amygdala, and nucleus accumbens shifted toward lower outgoing dominance, while the thalamus and globus pallidus shifted toward outgoing dominance.</p>
+        <p class="stat"><b>Largest contrasts (SD units):</b> caudate −0.41, peripheral visual −0.36, temporal parietal −0.36, ContC +0.32.</p>
+      </div>
+      <figure class="fig">
+        <a class="zoom" href="assets/network-balance-brain.webp" target="_blank" rel="noopener" title="Open the figure at full size">
+          <img src="assets/network-balance-brain.webp" width="2000" height="1164" loading="lazy"
+               alt="Brain maps of the remitted-minus-depressed contrast of network balance. Cortical surfaces show most control, default-mode, dorsal-attention and salience networks in red, and peripheral visual, somatomotor A and temporal parietal networks in blue. Subcortical slices show the caudate, amygdala, hippocampus and nucleus accumbens in blue, and the globus pallidus and thalamus in light red.">
+        </a>
+        <figcaption>Remitted minus depressed network balance, in SD units. Red: more outgoing attribution in remitted scans; blue: more incoming.</figcaption>
+      </figure>
+    </article>
+
+    <article class="finding" role="tabpanel" id="finding-2" aria-labelledby="tab-2" hidden>
+      <div class="ftext">
+        <h3>Treatment moderates the link between thalamic balance and remission</h3>
+        <p>We tested whether the association between each network's balance and concurrent remission differed between active SNT and sham. Of the 24 networks, only the thalamus showed a significant treatment-by-balance interaction after family-wise error correction.</p>
+        <p>Relative to sham, remission under active SNT was associated with lower thalamic source dominance: less outgoing relative to incoming thalamic attribution.</p>
+        <p class="stat"><b>Thalamus:</b> interaction odds ratio 0.14, <i>p</i><sub>FWER</sub> = 0.006.</p>
+      </div>
+      <figure class="fig">
+        <a class="zoom" href="assets/thalamic-moderation-a.webp" target="_blank" rel="noopener" title="Open the figure at full size">
+          <img src="assets/thalamic-moderation-a.webp" width="1800" height="949" loading="lazy"
+               alt="Forest plot of treatment-by-balance interaction odds ratios for 24 networks. Only the thalamus is significant after family-wise error correction.">
+        </a>
+        <figcaption>Active-to-sham remission odds ratios per one-SD increase in network balance, with 95% CIs. Bold: <i>p</i><sub>FWER</sub> &lt; 0.05.</figcaption>
+      </figure>
+    </article>
+
+    <article class="finding tall" role="tabpanel" id="finding-3" aria-labelledby="tab-3" hidden>
+      <div class="ftext">
+        <h3>Removing the thalamus's edges lowers the remission score</h3>
+        <p>For each of the 24 networks we removed, or retained only, its outgoing, incoming, or all incident network-level edges, and compared the change in the model's output score for remission with matched control perturbations.</p>
+        <p>Only removal of all edges incident on the thalamus produced a significantly greater reduction than the controls. Removing thalamic incoming or outgoing edges separately did not reach significance, nor did any retain-only condition or any other network.</p>
+        <p class="stat"><b>Thalamus, all incident edges removed:</b> <i>p</i><sub>FWER</sub> = 0.0417.</p>
+      </div>
+      <figure class="fig">
+        <a class="zoom" href="assets/edge-perturbation.webp" target="_blank" rel="noopener" title="Open the figure at full size">
+          <img src="assets/edge-perturbation.webp" width="1800" height="1563" loading="lazy"
+               alt="A: schematic of removing or retaining the outgoing, incoming or all incident edges of one network. B: forest panels of standardized effects on model prediction for each network; removal of all thalamic incident edges is the only significant effect.">
+        </a>
+        <figcaption><b>(A)</b> Perturbation types. <b>(B)</b> Standardized effects relative to matched controls, with 95% CIs.</figcaption>
+      </figure>
+    </article>
+
+    <article class="finding" role="tabpanel" id="finding-4" aria-labelledby="tab-4" hidden>
+      <div class="ftext">
+        <h3>Five thalamus–partner pairs carry the treatment interaction</h3>
+        <p>As a post hoc follow-up, we examined the directional balance between the thalamus and each of the other 23 networks: thalamus-to-partner minus partner-to-thalamus attribution. Five treatment-by-balance interactions survived family-wise error correction.</p>
+        <p>Relative to sham, remission under active SNT was associated with less thalamus-to-partner attribution for DefaultC, ContA, SalVentAttnA, and CAU, and with more for ContB.</p>
+      </div>
+      <figure class="fig">
+        <a class="zoom" href="assets/thalamic-moderation-b.webp" target="_blank" rel="noopener" title="Open the figure at full size">
+          <img src="assets/thalamic-moderation-b.webp" width="1800" height="901" loading="lazy"
+               alt="Forest plot of treatment-by-balance interaction odds ratios for 23 thalamus-partner pairs. Five pairs are significant after family-wise error correction.">
+        </a>
+        <figcaption>Active-to-sham remission odds ratios per one-SD increase in thalamus–partner balance, with 95% CIs. Bold: <i>p</i><sub>FWER</sub> &lt; 0.05.</figcaption>
+      </figure>
+    </article>
+
+    <article class="finding tall" role="tabpanel" id="finding-5" aria-labelledby="tab-5" hidden>
+      <div class="ftext">
+        <h3>Remitted profiles separate association networks from sensorimotor networks</h3>
+        <p>In an exploratory comparison, we looked at the highest-magnitude pairwise directional balances in four subgroups: active SNT and sham, each depressed or remitted. Depressed profiles were similar across treatment arms.</p>
+        <p>In the remitted profiles, default-mode and control networks showed lower outgoing relative to incoming attribution in several pairs involving subcortical networks, whereas visual and somatomotor networks showed greater incoming relative to outgoing attribution. These profiles are normalized within each subgroup and were not statistically tested.</p>
+      </div>
+      <figure class="fig">
+        <a class="zoom" href="assets/dyadic-chord.webp" target="_blank" rel="noopener" title="Open the figure at full size">
+          <img src="assets/dyadic-chord.webp" width="1600" height="1539" loading="lazy"
+               alt="Four chord diagrams of pairwise directional network balance: active SNT and sham columns, depressed and remitted rows.">
+        </a>
+        <figcaption>Top 25% of dyads by absolute balance in each subgroup. Arrowheads show the dominant direction.</figcaption>
+      </figure>
+    </article>
+  </div>
+</section>
+
+<section id="limitations" class="wrap">
+  <p class="kicker">Discussion</p>
+  <h2>Limitations and future work</h2>
+  <div class="twocol">
+    <div>
+      <h3>Limitations</h3>
+      <ol class="limits">
+        <li><b>Sample size.</b> The sample was small relative to the model's complexity. Discrimination was moderate (AUC 0.717, 95% CI 0.665–0.770), and the AUC advantage over most baselines was not robust to the small-cluster <i>t</i>(33) correction, so performance does not yet support robust individual-level prediction or target selection.</li>
+        <li><b>Single-hop attention.</b> Network-level attention captures single-hop directed relationships; multi-hop propagation, recurrent interactions, and circuit motifs lie outside it.</li>
+        <li><b>One cohort.</b> The model was evaluated on a single SNT dataset (<a href="https://clinicaltrials.gov/study/NCT04739969">NCT04739969</a>). External validation across sites, scanners, acquisition protocols, preprocessing pipelines, and diagnostic groups is needed.</li>
+        <li><b>Time.</b> Remission occurred mainly after treatment began, so remission and depression scans systematically differ in visit and time since treatment. The classifier was not adjusted for visit, and although the attribution models adjusted for days since initial treatment, the model may partly reflect time-related differences.</li>
+        <li><b>Concurrent state.</b> The labels describe clinical state at the time of scanning. The model classifies scans acquired during remission or depression; predicting future treatment response would have greater clinical utility.</li>
+        <li><b>Repeated scans.</b> The 766 scans come from 42 participants. Participant-level splits prevent leakage, and the attribution analyses used participant-clustered errors and participant-preserving permutations, but each test set held seven participants and only six sham-arm participants contributed remission scans, so sham-arm estimates and the treatment interactions have limited precision.</li>
+        <li><b>Attribution.</b> Attribution scores reflect the features the model uses to separate remission from persistent depression. The findings are hypothesis-generating and call for prospective and mechanistic validation before any use as a biomarker of remission.</li>
+      </ol>
+    </div>
+    <div>
+      <h3>Future work</h3>
+      <ul class="future">
+        <li><b>Multimodal graphs.</b> Integrate structural and functional connectivity, with anatomical pathways constraining functional interactions.</li>
+        <li><b>Prospective prediction.</b> With larger longitudinal cohorts, move from concurrent-state classification to prediction of individual treatment response.</li>
+        <li><b>Change over treatment.</b> Identify network changes that precede or track improvement.</li>
+        <li><b>Targeting.</b> If the thalamic findings are confirmed, evaluate subject-specific target–thalamus connectivity as a soft prior, alongside target–sgACC connectivity, for ranking candidate cortical sites.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="cite" class="wrap narrow">
+  <p class="kicker">Cite</p>
+  <h2>BibTeX</h2>
+  <div class="bib">
+    <button type="button" id="copybib">Copy</button>
+<pre id="bib">@article{han2026nethgl,
+  title  = {{NetHGL}: Hierarchical Graph Learning Identifies Remission-Associated
+            Network Organization in Treatment-Resistant Depression Following
+            Stanford Neuromodulation Therapy},
+  author = {Han, Huiwen and Pines, Adam R. and Wang, Yixin and Zhang, Yu and
+            Austelle, Christopher W.},
+  year   = {2026},
+  note   = {Preprint}
+}</pre>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap footrow">
+    <div class="footbrand">
+      <a class="brand" href="#top">
+        <img class="mark" src="assets/logo.svg" width="30" height="30" alt="">
+        <span>NetHGL</span>
+      </a>
+      <p>Network-aware hierarchical graph learning for fMRI in treatment-resistant depression.</p>
+    </div>
+    <nav class="footlinks" aria-label="Resources">
+      <span class="soon">Paper (coming soon)</span>
+      <a href="https://github.com/tracyhann/NetHGL">Code</a>
+      <a href="#cite">BibTeX</a>
+      <a href="https://clinicaltrials.gov/study/NCT04739969">Trial</a>
+    </nav>
+    <div class="footlogos">
+      <img class="footlogo stanford" src="assets/stanford.svg" alt="Stanford University" width="177" height="79" loading="lazy">
+      <img class="footlogo" src="assets/bsl-logo.png" alt="Brain Stimulation Lab" width="768" height="292" loading="lazy">
+    </div>
+  </div>
+  <div class="wrap footnote">
+    <p>Data were collected in the randomized controlled trial <a href="https://clinicaltrials.gov/study/NCT04739969">NCT04739969</a>. We thank the participants and the members of the Stanford Brain Stimulation Lab.</p>
+  </div>
+</footer>
+
+<script src="page.js"></script>
+</body>
+</html>
