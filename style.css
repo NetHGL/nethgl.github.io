@@ -45,11 +45,19 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--amber); outline
   border-bottom: 1px solid var(--line);
 }
 .navrow { display: flex; align-items: center; gap: 18px; height: 58px; }
-.brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); font-size: 1.2rem; font-weight: 700; letter-spacing: -0.01em; text-decoration: none; }
+.brand { flex: none; display: inline-flex; align-items: center; gap: 10px; color: var(--ink); font-size: 1.2rem; font-weight: 700; letter-spacing: -0.01em; text-decoration: none; }
 .brand:hover { color: var(--ink); }
 .brand .mark { flex: none; width: 30px; height: 30px; border-radius: 7px; }
 .navlinks { display: flex; align-items: stretch; gap: 4px; margin-left: auto; align-self: stretch; overflow-x: auto; scrollbar-width: none; }
 .navlinks::-webkit-scrollbar { display: none; }
+/* when the links do not fit they scroll sideways, and fade out at whichever end has more (classes set in page.js) */
+.navlinks {
+  --fade-l: 0px; --fade-r: 0px;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fade-l), #000 calc(100% - var(--fade-r)), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 var(--fade-l), #000 calc(100% - var(--fade-r)), transparent);
+}
+.navlinks.more-l { --fade-l: 24px; }
+.navlinks.more-r { --fade-r: 24px; }
 .navlinks a {
   display: inline-flex; align-items: center; padding: 0 12px; white-space: nowrap;
   color: var(--muted); font-size: 0.97rem; font-weight: 500; text-decoration: none;
@@ -224,6 +232,7 @@ pre { margin: 0; padding: 16px 18px; background: #f5f7f9; border: 1px solid var(
 .footnote p { margin: 0 0 4px; }
 
 @media (max-width: 900px) {
+  .bib pre { padding-top: 48px; }   /* the Copy button sits in its own row above the entry */
   .tabs { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
   .finding, .finding.tall { grid-template-columns: 1fr; padding: 16px; }
   .fhead { grid-template-columns: 1fr; gap: 8px; }

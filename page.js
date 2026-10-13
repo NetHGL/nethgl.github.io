@@ -40,6 +40,17 @@
   window.addEventListener('resize', mark);
   mark();
 
+  // ---- Header: the section links scroll sideways when they do not fit; fade the end that has more
+  var strip = document.querySelector('.navlinks');
+  function edges() {
+    var room = strip.scrollWidth - strip.clientWidth;
+    strip.classList.toggle('more-l', strip.scrollLeft > 2);
+    strip.classList.toggle('more-r', strip.scrollLeft < room - 2);
+  }
+  strip.addEventListener('scroll', edges, { passive: true });
+  window.addEventListener('resize', edges);
+  edges();
+
   // ---- BibTeX copy
   var copy = document.getElementById('copybib');
   if (copy) copy.addEventListener('click', function () {
